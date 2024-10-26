@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saga Services</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #404040;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-size: cover;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .fog {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(128, 128, 128, 0.5);
+            z-index: 0;
+        }
+
+        .categories {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .category {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .category:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .product {
+            background: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .product:hover {
+            transform: translateY(-5px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: #3a3a3a;
+            position: relative;
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4444;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-category {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .product-rating {
+            color: #ffd700;
+            margin: 0.5rem 0;
+        }
+
+        .product-price {
+            color: #4444ff;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+
+        .page-number {
+            background: #2a2a2a;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .page-number.active {
+            background: #4444ff;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background: #1a1a1a;
+            width: 90%;
+            max-width: 800px;
+            margin: 50px auto;
+            border-radius: 8px;
+            overflow: hidden;
+            color: #ffffff;
+        }
+
+        .modal-header {
+            padding: 1rem;
+            position: relative;
+            background: #2a2a2a;
+        }
+
+        .modal-header .badge {
+            background: #4444ff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 1rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #ffffff;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .feature-list li {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            color: #4CAF50;
+            position: absolute;
+            left: 0;
+        }
+
+        .price-section {
+            background: #2a2a2a;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .price-range {
+            font-size: 1.5rem;
+            color: #4444ff;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .key-duration-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: #2a2a2a;
+            border: 1px solid #4444ff;
+            border-radius: 4px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .key-duration-select option {
+            background: #1a1a1a;
+            color: white;
+            padding: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: #4444ff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .notice {
+            background: rgba(255, 0, 0, 0.1);
+            border-left: 4px solid #ff4444;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .watchers {
+            background: rgba(68, 68, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="fog"></div>
+        <h1>Saga Services</h1>
+        <div class="categories">
+            <div class="category">Hacks (5)</div>
+            <div class="category">Swoofers (1)</div>
+        </div>
+    </div>
+
+    <div class="products">
+        <div class="product" data-title="Fortnite Hack" data-price="$11.99 - $29.99">
+            <div class="product-image">
+                <img src="images/menu_image.png" alt="Fortnite Hack" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="product-info">
+                <div class="product-title">Fortnite Hack</div>
+                <div class="product-category">Hacks</div>
+                <div class="product-rating">★★★★☆</div>
+                <div class="product-price">FREE - $39.99</div>
+            </div>
+        </div>
+
+        <div class="product" data-title="MW3 Hack" data-price="$29.99 - $44.99">
+            <div class="product-image">
+                <img src="images/cod_gameimage.png" alt="MW3 Hack" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="product-badge">SOLD OUT</div>
+            </div>
+            <div class="product-info">
+                <div class="product-title">MW3 Hack</div>
+                <div class="product-category">Hacks</div>
+                <div class="product-rating">★★☆☆☆</div>
+                <div class="product-price">FREE - $39.99</div>
+            </div>
+        </div>
+
+        <div class="product" data-title="Minecraft Hack" data-price="FREE - $4.99">
+            <div class="product-image">
+                <img src="images/image111.png" alt="Minecraft Hack" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="product-info">
+                <div class="product-title">Minecraft Hack</div>
+                <div class="product-category">Hacks</div>
+                <div class="product-rating">★★★★★</div>
+                <div class="product-price">FREE - $39.99</div>
+            </div>
+        </div>
+
+        <div class="product" data-title="Valorant Hack" data-price="$9.99">
+            <div class="product-image">
+                <img src="images/val_menugameicon.png" alt="Valorant Hack" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="product-badge">-30%</div>
+            </div>
+            <div class="product-info">
+                <div class="product-title">Valorant Hack</div>
+                <div class="product-category">Hacks</div>
+                <div class="product-rating">★★★★☆</div>
+                <div class="product-price">FREE - $39.99</div>
+            </div>
+        </div>
+
+        <div class="product" data-title="GTA V Hack" data-price="FREE - $9.99">
+            <div class="product-image">
+                <img src="images/gta_menuimage.png" alt="GTA Hack" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="product-info">
+                <div class="product-title">GTA V Hack</div>
+                <div class="product-category">Hacks</div>
+                <div class="product-rating">★★★☆☆</div>
+                <div class="product-price">FREE - $39.99</div>
+            </div>
+        </div>
+
+        <div class="product" data-title="Saga's Spoofer" data-price="FREE">
+            <div class="product-image">
+                <img src="images/spooferimage.jpg" alt="Spoofer" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="product-badge">-100%</div>
+            </div>
+            <div class="product-info">
+                <div class="product-title">Saga's Spoofer</div>
+                <div class="product-category">Spoofer</div>
+                <div class="product-rating">★★★★☆</div>
+                <div class="product-price">FREE - $39.99</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pagination">
+        <div class="page-number active">1</div>
+        <div class="page-number">2</div>
+        <div class="page-number">3</div>
+        <div class="page-number">4</div>
+        <div class="page-number">></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="badge">NEW</span>
+                <h2 class="product-title">Product Name</h2>
+                <div class="modal-close">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="product-rating">★★★★★</div>
+                <div class="price-section">
+                    <div class="price-range">FREE - $39.99</div>
+                </div>
+                
+                <div class="notice">
+                    <strong>NOTICE:</strong> FOR FREE KEY GO TO A PAID KEY THEN THE FREE KEY!
+                </div>
+
+                <ul class="feature-list">
+                    <li>PRICES LOWERED FOR THIS WEEK ONLY</li>
+                    <li>Instant Delivery</li>
+                    <li>Unlock All Included</li>
+                    <li>Works with Controllers</li>
+                    <li>Works with All Seasons</li>
+                    <li>Over 120 Amazing Features</li>
+                </ul>
+
+                <select class="key-duration-select">
+                    <option value="7">1 Day (FREE)</option>
+                    <option value="30">7 Day Key (14.99)</option>
+                    <option value="60">20 Day Key (24.99)</option>
+                    <option value="90">35 Day Key (39.99)</option>
+                </select>
+
+                <div class="buttons">
+                    <button class="btn btn-secondary">ADD TO CART</button>
+                    <button class="btn btn-primary" style="display: none;">BUY NOW</button>
+                    <a href="Downloads/Saga Services (Multi-Tool).zip" class="btn btn-primary download-btn" style="display: none;" download>DOWNLOAD</a>
+                </div>
+
+                <div class="watchers">
+                    <span>👁 7 People watching this product now!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('.category').click(function() {
+                $('.category').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            $('.page-number').click(function() {
+                $('.page-number').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Product modal functionality
+            $('.product').click(function() {
+                const product = $(this);
+                const modal = $('#productModal');
+                
+                // Update modal content with product info
+                modal.find('.product-title').text(product.data('title'));
+                modal.find('.product-rating').html(product.find('.product-rating').html());
+                modal.find('.price-range').text(product.data('price'));
+                
+                // Show modal
+                modal.fadeIn();
+            });
+
+            // Close modal
+            $('.modal-close').click(function() {
+                $('#productModal').fadeOut();
+            });
+
+            // Close modal when clicking outside
+            $(window).click(function(event) {
+                if ($(event.target).hasClass('modal')) {
+                    $('#productModal').fadeOut();
+                }
+            });
+
+            // Change button text based on the selected key duration
+            $('.key-duration-select').change(function() {
+                const selectedValue = $(this).val();
+                const buyButton = $('.btn-primary');
+                const downloadButton = $('.download-btn');
+
+                if (selectedValue === '7') { // 1 Day FREE Key selected
+                    buyButton.hide();
+                    downloadButton.show().text('DOWNLOAD');
+                } else {
+                    buyButton.show().text('BUY NOW');
+                    downloadButton.hide();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saga Services</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #000000;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #000000;
+            border-bottom: 1px solid #333;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .logo {
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+            position: relative;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #87CEFA;
+        }
+
+        .nav-links a.active {
+            color: #87CEFA;
+            font-weight: 600;
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: #333;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            top: 100%;
+            left: 0;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            color: white;
+            padding: 1rem;
+            text-decoration: none;
+        }
+
+        .dropdown-menu a:hover {
+            background: #444;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .hero {
+            background: linear-gradient(to bottom, 
+                rgba(0,0,0,1) 0%,
+                rgba(0,0,0,0.9) 40%,
+                rgba(128,128,128,0.3) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding-top: 80px;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom,
+                rgba(128,128,128,0) 0%,
+                rgba(128,128,128,0.2) 50%,
+                rgba(128,128,128,0.3) 100%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            padding: 4rem;
+            max-width: 1000px;
+            color: white;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .hero-content h1 {
+            font-size: 4.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            line-height: 1.2;
+        }
+
+        .hero-content p {
+            font-size: 1.8rem;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            color: #e0e0e0;
+        }
+
+        .cta-button {
+            background: #87CEFA;
+            color: white;
+            padding: 1.5rem 3rem;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+            border: 1px solid #444;
+            font-size: 1.5rem;
+        }
+
+        .cta-button:hover {
+            background: #B0E2FF;
+        }
+
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #333;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transform: translateY(0);
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .cookie-banner.hidden {
+            transform: translateY(100%);
+        }
+
+        .accept-button {
+            background: #333333;
+            color: white;
+            border: 1px solid #444;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.3s;
+        }
+
+        .accept-button:hover {
+            background: #444444;
+        }
+
+        .chat-widget {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: #333333;
+            padding: 1.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            color: white;
+            border: 1px solid #444;
+            z-index: 1001;
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-widget:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-window {
+            position: fixed;
+            left: -400px;
+            bottom: 100px;
+            width: 350px;
+            height: 500px;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            border-radius: 10px;
+            z-index: 1000;
+            transition: left 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #444;
+        }
+
+        .chat-window.open {
+            left: 30px;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: #333;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #444;
+            background: #333;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #222;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: #87CEFA;
+        }
+
+        .typing-animation {
+            display: inline-block;
+            color: white;
+            font-size: 16px;
+        }
+
+        .typing-animation::after {
+            content: '';
+            animation: typing 1.5s infinite;
+        }
+
+        @keyframes typing {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: #222;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            width: 300px;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .modal-tabs {
+            margin-bottom: 1rem;
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .tab-button.active {
+            background: #444;
+        }
+
+        .tab-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-content input {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+        }
+
+        .tab-content .submit-button {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            background: #87CEFA;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .tab-content .submit-button:hover {
+            background: #B0E2FF;
+        }
+
+        .tab-content.hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-container {
+                padding: 1.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-content {
+                padding: 2rem;
+            }
+
+            .hero-content h1 {
+                font-size: 3rem;
+            }
+
+            .hero-content p {
+                font-size: 1.4rem;
+            }
+
+            .chat-window {
+                width: calc(100% - 60px);
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="logo">Saga Services</a>
+            <div class="nav-links">
+                <a href="#" class="active">Home</a>
+                <div class="dropdown">
+                    <a href="#">Cheats</a>
+                    <div class="dropdown-menu">
+                        <a href="#">Minecraft</a>
+                        <a href="#">Fortnite</a>
+                        <a href="#">MW3</a>
+                        <a href="#">CS2GO</a>
+                    </div>
+                </div>
+                <a href="https://www.youtube.com/@Polozfn1">Youtube</a>
+                <a href="https://github.com/Polozfn">Github</a>
+                <a href="#"></a>
+                <a href="#" class="login-link">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Saga Services</h1>
+            <p>Here we provide services like game cheats and social media services like free followers and MORE!</p>
+            <a href="Shop.html" class="cta-button">SHOP NOW</a>
+        </div>
+    </main>
+
+    <div class="chat-widget">
+        <span>💬</span>
+    </div>
+
+    <div class="chat-window">
+        <div class="chat-header">
+            <div class="typing-animation">How can I assist you?</div>
+        </div>
+        <div class="chat-messages">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" placeholder="Type your message...">
+        </div>
+    </div>
+
+    <div class="cookie-banner">
+        <p>We use cookies to improve your experience on our website.</p>
+        <button class="accept-button">Accept</button>
+    </div>
+
+    <div class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Login or Register</h2>
+            <div class="modal-tabs">
+                <button class="tab-button active" data-tab="login">Login</button>
+                <button class="tab-button" data-tab="register">Register</button>
+            </div>
+            <div class="tab-content" id="login">
+                <input type="text" placeholder="Username" id="login-username" />
+                <input type="password" placeholder="Password" id="login-password" />
+                <button class="submit-button" onclick="login()">Login</button>
+            </div>
+            <div class="tab-content hidden" id="register">
+                <input type="text" placeholder="Username" id="register-username" />
+                <input type="password" placeholder="Password" id="register-password" />
+                <input type="email" placeholder="Email" id="register-email" />
+                <button class="submit-button" onclick="register()">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let users = [];
+
+        function register() {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const email = document.getElementById('register-email').value;
+
+            if (username && password && email) {
+                // Add the new user to the users array
+                users.push({ username, password, email });
+                
+                // Clear input fields
+                document.getElementById('register-username').value = '';
+                document.getElementById('register-password').value = '';
+                document.getElementById('register-email').value = '';
+                
+                // Switch to login tab
+                switchTab('login');
+            } else {
+                alert("Please fill in all fields.");
+            }
+        }
+
+        function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                alert('Login successful!'); // This could be a redirect or another action
+                // Close the modal after successful login
+                closeModal();
+            } else {
+                alert('Invalid username or password.');
+            }
+        }
+
+        function switchTab(tab) {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                if (button.getAttribute('data-tab') === tab) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+
+            tabContents.forEach(content => {
+                if (content.id === tab) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cookie banner logic
+            const cookieBanner = document.querySelector('.cookie-banner');
+            const acceptButton = document.querySelector('.accept-button');
+
+            if (localStorage.getItem('cookiesAccepted')) {
+                cookieBanner.classList.add('hidden');
+            }
+
+            acceptButton.addEventListener('click', function() {
+                cookieBanner.classList.add('hidden');
+                localStorage.setItem('cookiesAccepted', 'true');
+            });
+
+            // Chat widget logic
+            const chatWidget = document.querySelector('.chat-widget');
+            const chatWindow = document.querySelector('.chat-window');
+
+            chatWidget.addEventListener('click', function() {
+                chatWindow.classList.toggle('open');
+            });
+
+            // Handle chat input
+            const chatInput = document.querySelector('.chat-input');
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && this.value.trim() !== '') {
+                    const messagesContainer = document.querySelector('.chat-messages');
+                    const messageElement = document.createElement('div');
+                    messageElement.style.color = 'white';
+                    messageElement.style.marginBottom = '10px';
+                    messageElement.textContent = this.value;
+                    messagesContainer.appendChild(messageElement);
+                    this.value = '';
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            });
+
+            // Modal logic
+            const loginLink = document.querySelector('.login-link');
+            const modal = document.querySelector('.modal');
+            const closeModal = document.querySelector('.close-modal');
+
+            loginLink.addEventListener('click', function(event) {
+                event.preventDefault();
+                modal.classList.remove('hidden');
+                modal.style.opacity = 1; // Show modal with fade-in effect
+            });
+
+            closeModal.addEventListener('click', function() {
+                modal.style.opacity = 0; // Fade-out effect
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300); // Match duration with CSS transition
+            });
+
+            // Switch tab on button click
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    switchTab(this.getAttribute('data-tab'));
+                });
+            });
+        });
+    </script>
+</body>
+</html>
